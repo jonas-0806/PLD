@@ -1,0 +1,10 @@
+(define merge (lambda ((a . rema) (b . remb)) (cons a (cons b (merge rema remb)) )
+                      (() remb) remb
+                      (rema ()) rema
+                      (() ()) () ))
+
+(define add (lambda (((a . as) . (b . bs))) (+ (add (cons a as)) (add (cons b bs)))
+                    (((a. as))) (+ (add a) (add as))
+                    ((a . as)) (if (number? a) (+ a (add as)) (add as))
+                    (a) (if (number? a) a 0)
+                    (()) 0))
