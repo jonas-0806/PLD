@@ -46,7 +46,7 @@ let updateGlobal x v =
 exception Lerror of string
 
 // specials do not evaluate (all) their arguments
-let specials =  ["quote"; "lambda"; "lambdaD"; "if"; "define"; "save"; "load"]
+let specials =  ["quote"; "lambda"; "lambdaD"; "if"; "define"; "save"; "load"; "return"]
 
 // unary operators
 let unops = ["number?"; "symbol?"]
@@ -232,6 +232,7 @@ and applyVarop x vs =
 
 and tryRules rs args localEnv =
   match rs with
+  | Cons (p, Cons (Symbol "return", retExp)) -> raise (Lerror ("hi"))
   | Cons (p, Cons (e, rs1)) ->
       match matchPattern p args with
       | Some env -> eval e (env @ localEnv)

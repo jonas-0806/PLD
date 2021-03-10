@@ -3,7 +3,6 @@
 module Sexp
 
 // Type for S-expressions
-
 type Sexp = Symbol of string
           | Nil
           | Num of int

@@ -1,0 +1,12 @@
+\how do blocks work in LISP
+\how can i define a variable and do something else in one S-expression
+\for A2.1 c, should we inspect the implementation? cant test
+\A2.2 a: f called last?
+\singleton list?
+
+(load listfunctions)
+\(define f (lambda (x) ((lambda (y) x) 10)))
+
+(cdr (cons (define f (lambda (y) x)) (cdr (cons (define x 0) ((lambda (x) (f 10)) 1)))))
+
+(cdr (cons (define f (lambdaD (y) x)) (cdr (cons (define x 0) ((lambda (x) (f 10)) 1)))))
