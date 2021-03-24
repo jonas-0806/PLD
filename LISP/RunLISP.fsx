@@ -46,7 +46,7 @@ let updateGlobal x v =
 exception Lerror of string
 
 // specials do not evaluate (all) their arguments
-let specials =  ["quote"; "lambda"; "lambdaD"; "if"; "define"; "save"; "load"; "return"]
+let specials =  ["quote"; "lambda"; "lambdaD"; "if"; "define"; "save"; "load"]
 
 // unary operators
 let unops = ["number?"; "symbol?"]
@@ -120,7 +120,7 @@ let rec eval s localEnv =
                    with _ -> raise (Lerror ("Could not open file " + f + ".le"))
       try repl infile ()
       with EndOfFile s ->
-        (if s <> "" then
+        (if skipWhite s 0 s.Length <> s.Length then
            printf "! %s\n" "File ended before expression was complete"
          ; infile.Close ())
       ; Nil
@@ -232,7 +232,6 @@ and applyVarop x vs =
 
 and tryRules rs args localEnv =
   match rs with
-  | Cons (p, Cons (Symbol "return", retExp)) -> raise (Lerror ("hi"))
   | Cons (p, Cons (e, rs1)) ->
       match matchPattern p args with
       | Some env -> eval e (env @ localEnv)

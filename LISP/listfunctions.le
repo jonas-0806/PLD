@@ -39,9 +39,3 @@
 
 \ equality test
 (define equal (lambda (x x) 'T (x y) ()))
-
-\member?
-(define member? (lambda (x (x . list)) 'T 
-                        (() (() . list)) 'T
-                        (x (y . list)) (member? x list) 
-                        (x ()) ()))

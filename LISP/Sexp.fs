@@ -3,6 +3,7 @@
 module Sexp
 
 // Type for S-expressions
+
 type Sexp = Symbol of string
           | Nil
           | Num of int
@@ -19,7 +20,7 @@ let makeList l = List.foldBack (fun a b -> Cons (a,b)) l Nil
 
 let symbolChars
   = set (['a'..'z'] @ ['A'..'Z'] @ ['0'..'9'] @
-         [for c in "æøåÆØÅ+-*/%=<>?!" -> c])
+         [for c in "æøåÆØÅ+-*/%=<>?!#,:{};" -> c])
 
 // whitespace characters
 
