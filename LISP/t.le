@@ -1,0 +1,139 @@
+(load listfunctions)
+(load prng)
+
+\\perform lookup in vars
+(define lookup (lambda
+    (a (() . xs)) (lookup a xs) \\skip first empty element
+    (a ((x . v) . xs)) (if (equal a x) v (lookup a xs))
+    (a ()) ()  
+))
+
+\\bind variable
+(define bind (lambda
+    (x a vars) (append vars (list (cons x a)))
+))
+
+\\extract value from singleton collection
+(define extract (lambda ((a)) a))
+
+\\takes list of lists of lists... and returns the list with all non-list elements in a single list
+(define flatten (lambda 
+    ((a . as)) (append (flatten a) (flatten as))
+    (a ()) (list a)
+    (a) (list a)
+))
+
+\\removes all () in a list
+(define clean (lambda
+    ((() . as)) (clean as)
+    ((a . as)) (cons a (clean as))
+    (()) ()
+))
+
+\\makes list of 'a' rolls of 'b'+1-sided dice
+\\with each recursive call we generate a random number
+\\from 0..b and add 1
+(define adb (lambda 
+    (0 b) ()
+    (a b) (cons (+ (rnd b) 1) (adb (- a 1) b))
+))
+
+(define collection (lambda 
+    (0 b vars) ()
+    (a b vars) (cons (eval b vars) (collection (- a 1) b vars))
+))
+
+(define collection2 (lambda
+    (() vars) ()
+    ((e . es) vars) (cons (eval e vars) (collection2 es vars))
+))
+
+\\sums all elements of a list
+(define sum (lambda
+    ((a . as)) (+ a (sum as))
+    ((a . ())) a
+    (()) 0
+))
+
+\\find minimum element in list
+(define min (lambda ((a . as)) (min2 as a)))
+(define min2 (lambda 
+    ((a . as) x) (if (< a x) (min2 as a) (min2 as x))
+    (() x) x
+))
+
+\\find maximum element in list
+(define max (lambda ((a . as)) (max2 as a)))
+(define max2 (lambda 
+    ((a . as) x) (if (> a x) (max2 as a) (max2 as x))
+    (() x) x
+))
+
+\\removes one occurrence of an element from list
+(define remove (lambda
+    ((a . as) rem) (if (equal a rem) as (cons a (remove as rem)))
+))
+
+\\find n smallest values in a list
+(define least (lambda
+    (as mins 0) mins
+    (as mins n) (least (remove as (min as)) (cons (min as) mins) (- n 1))
+))
+
+\\find n largest values in a list
+(define largest (lambda
+    (as maxs 0) maxs
+    (as maxs n) (largest (remove as (max as)) (cons (max as) maxs) (- n 1))
+))
+
+\\filters out elements which dont meet condition
+(define filter (lambda
+    ('< a ()) ()
+    ('< a (b . bs)) (if (< a b) (cons b (filter '< a bs)) (filter '< a bs))
+    ('< a b) (if (< a b) b ())
+    ('> a ()) ()
+    ('> a (b . bs)) (if (> a b) (cons b (filter '> a bs)) (filter '> a bs))
+    ('> a b) (if (> a b) b ())
+))
+
+\\returns element number n from list
+(define find (lambda
+    ((a . as) 0) a
+    ((a . as) n) (find as (- n 1))
+    (a) a
+))
+
+\\accumulate
+(define accumulate (lambda
+    (x e1 e2 vars) (cdr (cons (define temp (eval e1 vars)) (cons temp (if (eval e2 (bind x temp vars)) (accumulate x e1 e2 vars) ()))))
+))
+
+(define troll (lambda 
+        (exp 0) ()
+        (exp n) (append (list (eval exp ())) (troll exp (- n 1))) \\empty variable list
+        (exp) (eval exp ())
+))
+
+(define eval (lambda 
+        (('accumulate x ':= e1 while e2) vars) (accumulate x e1 e2 vars)
+        (('choose e) vars) (find (eval e vars) (rnd (length (eval e vars))))
+        (('largest e1 e2) vars) (largest (eval e2 vars) () (eval e1 vars))
+        (('least e1 e2) vars) (least (eval e2 vars) () (eval e1 vars))
+        (('max e) vars) (max (eval e vars))
+        (('min e) vars) (min (eval e vars))
+        (('count e) vars) (length (eval e vars))
+        (('{ '}) vars) ()
+        (('{ es '}) vars) (clean (flatten (collection2 es vars)))
+        (('sum e) vars) (sum (eval e vars)) 
+        ((x ':= e1 '; e2) vars) (eval e2 (bind x (eval e1 vars) vars))
+        ((a 'd b) vars) (adb (eval a vars) (eval b vars))
+        (('d b) vars) (extract (adb 1 (eval b vars)))
+        ((a '< bs) vars) (filter '< (eval a vars) (eval bs vars))
+        ((a '> bs) vars) (filter '> (eval a vars) (eval bs vars))
+        ((a '# b) vars) (clean (flatten (collection (eval a vars) b vars)))
+        ((a '+ b) vars) (+ (eval a vars) (eval b vars))
+        ((a '- b) vars) (- (eval a vars) (eval b vars))
+        ((a '* b) vars) (* (eval a vars) (eval b vars))
+        ((a '/ b) vars) (/ (eval a vars) (eval b vars))
+        (a vars) (if (symbol? a) (lookup a vars) a)
+))
